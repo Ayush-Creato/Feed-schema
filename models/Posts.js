@@ -38,10 +38,10 @@ const postsSchema = new mongoose.Schema({
     ref: 'Comment',
     required: true
   }],
-  views: [{
+  recommendations: [{
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'View',
-    required: true
+    ref: 'Recommendation',
+    required:true
   }],
   hashtags: [{
     type: String
@@ -50,4 +50,4 @@ const postsSchema = new mongoose.Schema({
   timestamps: true
 });
 
-module.exports = mongoose.model('Posts', postsSchema);
+module.exports = mongoose.model('Post', postsSchema);

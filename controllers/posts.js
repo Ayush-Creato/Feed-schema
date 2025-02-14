@@ -4,16 +4,16 @@ const Recommendation = require('../models/recommendations');
 // Create a new post
 exports.createPost = async (req, res) => {
   try {
-    const { videoUrl, thumbnail, caption, audio, hashtags } = req.body;
-    console.log(req.user);
+    const { videoUrl, thumbnail, caption, audio, hashtags, media } = req.body;
     
     const post = new Posts({
       user: req.user.userId,
       videoUrl,
-      thumbnail,
+      thumbnail, 
       caption,
       audio,
-      hashtags
+      hashtags,
+      media
     });
 
     await post.save();
@@ -30,8 +30,14 @@ exports.getPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Posts.find()
-      .populate('user', 'username avatar')
+    const posts = await Posts.find({user:req.user.userId})
+      .populate('user', 'username')
+      .populate('recommendations')
+      .populate({
+        path:'likes',
+        model:'User',
+        select:'username'
+      })
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);
@@ -42,24 +48,6 @@ exports.getPosts = async (req, res) => {
   }
 }
 
-// Increment view count
-exports.incrementViewCount = async (req, res) => {
-  try {
-    const post = await Posts.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    );
-    
-    if (!post) {
-      return res.status(404).json({ message: 'Post not found' });
-    }
-
-    res.json(post);
-  } catch (error) {
-    res.status(500).json({ message: error.message });
-  }
-}
 
 // Like a post
 exports.likePost = async (req, res) => {
@@ -70,10 +58,10 @@ exports.likePost = async (req, res) => {
       return res.status(404).json({ message: 'Post not found' });
     }
 
-    const likeIndex = post.likes.indexOf(req.user.id);
+    const likeIndex = post.likes.indexOf(req.user.userId);
     
     if (likeIndex === -1) {
-      post.likes.push(req.user.id);
+      post.likes.push(req.user.userId);
     } else {
       post.likes.splice(likeIndex, 1);
     }
@@ -108,9 +96,11 @@ exports.deletePost = async (req, res) => {
 // Get recommendations
 exports.getRecommendations = async (req, res) => {
   try {
-    const recommendations = await Recommendation.find();
+    const recommendations = await Recommendation.find({ user: req.user.userId })
+      .populate('posts')
     res.json(recommendations);
   } catch (error) {
+    console.log('Detailed error:', error);
     res.status(500).json({ message: error.message });
   }
 }
@@ -118,10 +108,23 @@ exports.getRecommendations = async (req, res) => {
 // Create a recommendation
 exports.createRecommendation = async (req, res) => {
   try {
-    const { user, posts, recommendations } = req.body;
+    const { recommendations } = req.body;
+    const postId = req.params.id; 
 
-    const recommendation = new Recommendation({ user, posts, recommendations }); 
+    const recommendation = new Recommendation({ 
+      user: req.user.userId, 
+      posts: postId, 
+      recommendations 
+    }); 
     await recommendation.save();
+
+    // Update the post with the recommendation content
+    await Posts.findByIdAndUpdate(
+      postId,
+      { $push: { recommendations: recommendation._id } }, // Store reference to recommendation document
+      { new: true }
+    );
+
     res.status(201).json(recommendation);
   } catch (error) {
     res.status(500).json({ message: error.message });
