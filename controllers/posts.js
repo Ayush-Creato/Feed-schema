@@ -1,14 +1,14 @@
 const Posts = require('../models/Posts');
 const Recommendation = require('../models/recommendations');
+const User = require('../models/User');
 
 // Create a new post
 exports.createPost = async (req, res) => {
   try {
-    const { videoUrl, thumbnail, caption, audio, hashtags, media } = req.body;
+    const {thumbnail, caption, audio, hashtags, media } = req.body;
     
     const post = new Posts({
       user: req.user.userId,
-      videoUrl,
       thumbnail, 
       caption,
       audio,
@@ -48,7 +48,6 @@ exports.getPosts = async (req, res) => {
   }
 }
 
-
 // Like a post
 exports.likePost = async (req, res) => {
   try {
@@ -73,11 +72,16 @@ exports.likePost = async (req, res) => {
   }
 }
 
-// Get a post by id
-exports.getPostById = async (req, res) => {
+// Get posts by array of ids
+exports.getPostByIds = async (req, res) => {
   try {
-    const post = await Posts.findById(req.params.id);
-    res.json(post);
+    const postIds = req.body.postIds;
+    
+    const posts = await Posts.find({
+      _id: { $in: postIds }
+    }).populate('user', 'username')
+
+    res.json(posts);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
@@ -97,7 +101,6 @@ exports.deletePost = async (req, res) => {
 exports.getRecommendations = async (req, res) => {
   try {
     const recommendations = await Recommendation.find({ user: req.user.userId })
-      .populate('posts')
     res.json(recommendations);
   } catch (error) {
     console.log('Detailed error:', error);
@@ -109,23 +112,28 @@ exports.getRecommendations = async (req, res) => {
 exports.createRecommendation = async (req, res) => {
   try {
     const { recommendations } = req.body;
-    const postId = req.params.id; 
 
     const recommendation = new Recommendation({ 
-      user: req.user.userId, 
-      posts: postId, 
+      user: req.user.userId,  
       recommendations 
     }); 
     await recommendation.save();
 
-    // Update the post with the recommendation content
-    await Posts.findByIdAndUpdate(
-      postId,
-      { $push: { recommendations: recommendation._id } }, // Store reference to recommendation document
-      { new: true }
-    );
-
     res.status(201).json(recommendation);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+}
+
+// Get recommendations for a user
+exports.getRecommendationsForUser = async (req, res) => {
+  try {
+    const userId = req.params.id; 
+
+    const user = await User.findById(userId);
+    const recommendations = user.recommendations;
+
+    res.json(recommendations);
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

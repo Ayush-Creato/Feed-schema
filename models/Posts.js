@@ -45,7 +45,19 @@ const postsSchema = new mongoose.Schema({
   }],
   hashtags: [{
     type: String
-  }]
+  }],
+  length: {
+    type: Number
+  },
+  videoQuality: {
+    type: String
+  },
+  share: {
+    type: Number
+  },
+  play: {
+    type: Number
+  }
 }, {
   timestamps: true
 });

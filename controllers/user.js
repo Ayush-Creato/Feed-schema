@@ -9,7 +9,7 @@ const jwt = require("jsonwebtoken");
 exports.register = async (req, res) => {
     try {
       const { username, email, password, fullName } = req.body;
-      console.log(req.body);
+      // console.log(req.body);
   
       // Validate required fields
       if (!username || !email || !password || !fullName) {
