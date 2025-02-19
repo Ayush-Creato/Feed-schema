@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const connectDB = async () => {
   try {
-    const conn = await mongoose.connect('mongodb+srv://pankajsharma:J8nnF6hHKzOXJXNM@creato-development-clus.tffvy.mongodb.net/new_testing_data?retryWrites=true&w=majority&appName=Creato-development-Cluster');
+    const conn = await mongoose.connect(process.env.MONGO_URI);
     console.log(`MongoDB Connected`);
   } catch (error) {
     console.error(`Error: ${error.message}`);
