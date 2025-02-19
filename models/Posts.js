@@ -6,17 +6,9 @@ const postsSchema = new mongoose.Schema({
     ref: 'User',
     required: true
   },
-  media: [{
-    type: {
-      type: String,
-      enum: ['image', 'video'],
-      required: true
-    },
-    url: {
-      type: String,
-      required: true
-    }
-  }],
+  media: {
+    type:String
+  },
   thumbnail: {
     type: String
   },
