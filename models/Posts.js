@@ -2,9 +2,7 @@ const mongoose = require('mongoose');
 
 const postsSchema = new mongoose.Schema({
   user: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'User',
-    required: true
+    type: String,
   },
   media: {
     type:String
@@ -18,36 +16,36 @@ const postsSchema = new mongoose.Schema({
   },
   audio: {
     name: String,
-    url: String
   },
-  likes: [{
+  likes: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
-    required: true
-  }],
-  comments: [{
+  },
+  comments: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'Comment',
-    required: true
-  }],
+    ref: 'User',
+  },
+  views_count: {
+    type: Number,
+    default: 0
+  },
   recommendations: [{
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Recommendation',
-    required:true
   }],
   hashtags: [{
     type: String
   }],
-  length: {
+  duration: {
     type: Number
   },
-  videoQuality: {
+  video_quality: {
     type: String
   },
-  share: {
+  share_count: {
     type: Number
   },
-  play: {
+  play_count: {
     type: Number
   }
 }, {

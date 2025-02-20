@@ -4,11 +4,101 @@ const User = require('../models/User');
 const fs = require('fs').promises;
 const path = require('path');
 const { default: axios } = require('axios');
+const { uploadToS3, deleteFromS3 } = require('../utils/s3Helper');
 
 // Create a new post
+// exports.createPost = async (req, res) => {
+//   try {
+//     const {thumbnail, caption, audio, hashtags, media } = req.body;
+    
+//     const post = new Posts({
+//       thumbnail, 
+//       caption,
+//       audio,
+//       hashtags,
+//       media
+//     });
+
+//     await post.save();
+//     res.status(201).json(post);
+//   } catch (error) {
+//     res.status(500).json({ message: error.message });
+//   }
+// }
+
+
+// Update createPost to use multer
 exports.createPost = async (req, res) => {
   try {
-    const {thumbnail, caption, audio, hashtags, media } = req.body;
+    const { caption, audio, hashtags } = req.body;
+    const thumbnailFile = req.files['thumbnail'][0];
+    const mediaFile = req.files['media'][0];
+
+    // Prepare files for S3 upload
+    const thumbnailData = {
+      name: Date.now() + thumbnailFile.originalname,
+      data: thumbnailFile.buffer,
+      mimetype: thumbnailFile.mimetype
+    };
+
+    const mediaData = {
+      name: Date.now() + mediaFile.originalname,
+      data: mediaFile.buffer,
+      mimetype: mediaFile.mimetype
+    };
+
+    // Upload thumbnail and media to S3
+     await uploadToS3(thumbnailData, 'thumbnails');
+     await uploadToS3(mediaData, 'media');
+    
+    const thumbnailUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/thumbnails/${thumbnailData.name}`;
+
+    const mediaUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/media/${mediaData.name}`;
+    
+    
+    const post = new Posts({
+      thumbnail: thumbnailUrl,
+      caption,
+      audio,
+      hashtags: JSON.parse(hashtags),
+      media: mediaUrl
+    });
+
+    await post.save();
+    res.status(201).json(post);
+  } catch (error) {
+    console.error('Error creating post:', error);
+    res.status(500).json({ message: error.message });
+  }
+}
+
+// Delete a post and delete files from S3
+exports.deletePost = async (req, res) => {
+  try {
+    const post = await Posts.findById(req.params.id);
+    if (!post) {
+      return res.status(404).json({ message: 'Post not found' });
+    }
+
+    // Delete files from S3
+    await Promise.all([
+      deleteFromS3(post.thumbnail),
+      deleteFromS3(post.media)
+    ]);
+
+    // Delete post from database
+    await Posts.findByIdAndDelete(req.params.id);
+    res.json({ message: 'Post deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting post:', error);
+    res.status(500).json({ message: error.message });
+  }
+}
+
+
+exports.uploadVideo = async (req, res) => {
+  try {
+    const {thumbnail, caption, audio, hashtags, media, views_count, likes_count, shares_count } = req.body;
     
     const post = new Posts({
       user: req.user.userId,
@@ -16,7 +106,10 @@ exports.createPost = async (req, res) => {
       caption,
       audio,
       hashtags,
-      media
+      media,
+      views_count,
+      likes_count,
+      shares_count
     });
 
     await post.save();
@@ -25,7 +118,6 @@ exports.createPost = async (req, res) => {
     res.status(500).json({ message: error.message });
   }
 }
-
 // Get all posts
 exports.getPosts = async (req, res) => {
   try {
@@ -150,7 +242,7 @@ exports.importPostsFromJsonFile = async (req, res) => {
   try {
     // Read the JSON file
     const jsonData = await fs.readFile(
-      path.join(__dirname, '../video_recommendations.json'),
+      path.join(__dirname, '../video_data.json'),
       'utf8'
     );
     
@@ -168,12 +260,12 @@ exports.importPostsFromJsonFile = async (req, res) => {
       audio: post.audio,
       hashtags: post.hashtags,
       media: post.media,
-      likes: post.likes || [],
-      comments: post.comments || [],
-      length: post.length,
-      videoQuality: post.videoQuality,
-      share: post.share,
-      play: post.play
+      likes_count: post.likes_count,
+      // comments_count: post.comments_count,
+      views_count: post.views_count,
+      video_quality: post.video_quality,
+      share_count: post.share_count,
+      play_count: post.play_count
     }));
 
     // Insert multiple posts
