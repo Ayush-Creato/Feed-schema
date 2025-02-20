@@ -36,13 +36,13 @@ exports.createPost = async (req, res) => {
 
     // Prepare files for S3 upload
     const thumbnailData = {
-      name: Date.now() + thumbnailFile.originalname,
+      name: Date.now() + '-' + thumbnailFile.originalname,
       data: thumbnailFile.buffer,
       mimetype: thumbnailFile.mimetype
     };
 
     const mediaData = {
-      name: Date.now() + mediaFile.originalname,
+      name: Date.now() + '-' + mediaFile.originalname,
       data: mediaFile.buffer,
       mimetype: mediaFile.mimetype
     };
