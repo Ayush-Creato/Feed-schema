@@ -30,7 +30,7 @@ const { uploadToS3, deleteFromS3 } = require('../utils/s3Helper');
 // Update createPost to use multer
 exports.createPost = async (req, res) => {
   try {
-    const { caption, audio, hashtags } = req.body;
+    const {user, caption, audio, hashtags } = req.body;
     const thumbnailFile = req.files['thumbnail'][0];
     const mediaFile = req.files['media'][0];
 
@@ -57,6 +57,7 @@ exports.createPost = async (req, res) => {
     
     
     const post = new Posts({
+      user,
       thumbnail: thumbnailUrl,
       caption,
       audio,
