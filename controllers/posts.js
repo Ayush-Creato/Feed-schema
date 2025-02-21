@@ -125,14 +125,7 @@ exports.getPosts = async (req, res) => {
     const limit = parseInt(req.query.limit) || 10;
     const skip = (page - 1) * limit;
 
-    const posts = await Posts.find({user:req.user.userId})
-      .populate('user', 'username')
-      .populate('recommendations')
-      .populate({
-        path:'likes',
-        model:'User',
-        select:'username'
-      })
+    const posts = await Posts.find()
       .sort({ createdAt: -1 })
       .skip(skip)
       .limit(limit);

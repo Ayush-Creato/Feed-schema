@@ -11,7 +11,7 @@ const uploadFiles = upload.fields([
 
 router.get("/recommendations",auth, getRecommendations);
 router.post("/createpost",auth, uploadFiles, createPost);
-router.get("/getposts",auth, getPosts);
+router.get("/getposts", getPosts);
 router.patch("/like/:id",auth, likePost);
 router.post("/:id/recommendations",auth, createRecommendation);
 router.get("/:id", getPostByIds);
