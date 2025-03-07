@@ -31,15 +31,15 @@ const { uploadToS3, deleteFromS3 } = require('../utils/s3Helper');
 exports.createPost = async (req, res) => {
   try {
     const {user, caption, audio, hashtags } = req.body;
-    const thumbnailFile = req.files['thumbnail'][0];
+    // const thumbnailFile = req.files['thumbnail'][0];
     const mediaFile = req.files['media'][0];
 
     // Prepare files for S3 upload
-    const thumbnailData = {
-      name: Date.now() + '-' + thumbnailFile.originalname,
-      data: thumbnailFile.buffer,
-      mimetype: thumbnailFile.mimetype
-    };
+    // const thumbnailData = {
+    //   name: Date.now() + '-' + thumbnailFile.originalname,
+    //   data: thumbnailFile.buffer,
+    //   mimetype: thumbnailFile.mimetype
+    // };
 
     const mediaData = {
       name: Date.now() + '-' + mediaFile.originalname,
@@ -48,17 +48,17 @@ exports.createPost = async (req, res) => {
     };
 
     // Upload thumbnail and media to S3
-     await uploadToS3(thumbnailData, 'thumbnails');
+    //  await uploadToS3(thumbnailData, 'thumbnails');
      await uploadToS3(mediaData, 'media');
     
-    const thumbnailUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/thumbnails/${thumbnailData.name}`;
+    // const thumbnailUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/thumbnails/${thumbnailData.name}`;
 
     const mediaUrl = `https://${process.env.AWS_S3_BUCKET_NAME}.s3.${process.env.AWS_REGION}.amazonaws.com/media/${mediaData.name}`;
     
     
     const post = new Posts({
       user,
-      thumbnail: thumbnailUrl,
+      // thumbnail: thumbnailUrl, 
       caption,
       audio,
       hashtags: JSON.parse(hashtags),

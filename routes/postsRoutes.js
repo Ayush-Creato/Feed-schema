@@ -10,7 +10,7 @@ const uploadFiles = upload.fields([
   ]);
 
 router.get("/recommendations",auth, getRecommendations);
-router.post("/createpost",auth, uploadFiles, createPost);
+router.post("/createpost", uploadFiles, createPost);
 router.get("/getposts", getPosts);
 router.patch("/like/:id",auth, likePost);
 router.post("/:id/recommendations",auth, createRecommendation);
